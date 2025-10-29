@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stylo - Admin Panel</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <!-- Google Fonts: Poppins -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --sidebar-bg: #212529;
+            --main-bg: #f8f9fa;
+            --brand-color: #00c7ff;
+            --sidebar-text: #adb5bd;
+            --sidebar-text-hover: #ffffff;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--main-bg);
+            overflow-x: hidden;
+        }
+
+        .wrapper {
+            display: flex;
+            width: 100%;
+            align-items: stretch;
+        }
+
+        #sidebar {
+            min-width: 260px;
+            max-width: 260px;
+            background: var(--sidebar-bg);
+            color: white;
+            transition: all 0.3s;
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            z-index: 999;
+        }
+
+        #sidebar.active {
+            margin-left: -260px;
+        }
+
+        #sidebar .sidebar-header {
+            padding: 20px;
+            background: #000;
+            text-align: center;
+        }
+        
+        #sidebar .sidebar-header .navbar-brand {
+            color: var(--brand-color) !important;
+            font-weight: 700;
+            font-size: 1.5rem;
+        }
+
+        #sidebar ul.components {
+            padding: 20px 0;
+        }
+
+        #sidebar ul li a {
+            padding: 15px 20px;
+            font-size: 1.1em;
+            display: block;
+            color: var(--sidebar-text);
+            border-left: 4px solid transparent;
+            text-decoration: none;
+            transition: all 0.2s ease-in-out;
+        }
+
+        #sidebar ul li a:hover {
+            color: var(--sidebar-text-hover);
+            background: #343a40;
+            border-left: 4px solid var(--brand-color);
+        }
+        
+        #sidebar ul li.active>a, a[aria-expanded="true"] {
+            color: #fff;
+            background: #343a40;
+            border-left: 4px solid var(--brand-color);
+        }
+
+        #content {
+            width: 100%;
+            padding: 20px;
+            min-height: 100vh;
+            transition: all 0.3s;
+            padding-left: 280px; /* Space for the sidebar */
+        }
+
+        #sidebar.active ~ #content {
+            padding-left: 20px;
+            width: 100%;
+        }
+        
+        .content-section {
+            display: none;
+        }
+        
+        .content-section.active {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .stat-card {
+            border: none;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+        }
+        .stat-card .card-body {
+            display: flex;
+            align-items: center;
+        }
+        .stat-card .stat-icon {
+            font-size: 2.5rem;
+            width: 70px;
+            height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            margin-right: 1.5rem;
+            color: #fff;
+        }
+
+        .product-img-thumbnail {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 0.5rem;
+        }
+        
+        /* Responsive Styles */
+        @media (max-width: 768px) {
+            #sidebar {
+                margin-left: -260px;
+            }
+            #sidebar.active {
+                margin-left: 0;
+            }
+            #content {
+                padding-left: 20px;
+            }
+            #sidebarCollapse span {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="wrapper">
+        <!-- Sidebar -->
+        <nav id="sidebar">
+            <div class="sidebar-header">
+                <a class="navbar-brand" href="#"><i class="bi bi-vector-pen"></i> Stylo Admin</a>
+            </div>
+
+            <ul class="list-unstyled components">
+                <li class="active">
+                    <a href="#" onclick="showSection('dashboard', this)"><i class="bi bi-grid-fill me-2"></i>Dashboard</a>
+                </li>
+                <li>
+                    <a href="#" onclick="showSection('products', this)"><i class="bi bi-box-seam-fill me-2"></i>Products</a>
+                </li>
+                <li>
+                    <a href="#" onclick="showSection('orders', this)"><i class="bi bi-receipt-cutoff me-2"></i>Orders</a>
+                </li>
+                <li>
+                    <a href="#" onclick="showSection('customers', this)"><i class="bi bi-people-fill me-2"></i>Customers</a>
+                </li>
+                <li>
+                    <a href="#" onclick="showSection('analytics', this)"><i class="bi bi-graph-up me-2"></i>Analytics</a>
+                </li>
+                <li>
+                    <a href="#" onclick="showSection('settings', this)"><i class="bi bi-gear-fill me-2"></i>Settings</a>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Page Content -->
+        <div id="content">
+            <nav class="navbar navbar-expand-lg navbar-light bg-light mb-4 shadow-sm rounded sticky-top">
+                <div class="container-fluid">
+                    <button type="button" id="sidebarCollapse" class="btn btn-dark">
+                        <i class="bi bi-list"></i>
+                    </button>
+                    <div class="ms-auto dropdown">
+                        <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle" id="dropdownUser" data-bs-toggle="dropdown" aria-expanded="false">
+                           <img src="https://placehold.co/40x40/00c7ff/FFFFFF?text=A" alt="" width="32" height="32" class="rounded-circle me-2">
+                           <strong>Admin</strong>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end text-small shadow" aria-labelledby="dropdownUser">
+                            <li><a class="dropdown-item" href="#">Settings</a></li>
+                            <li><a class="dropdown-item" href="#">Profile</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#">Sign out</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </nav>
+
+            <!-- Dashboard Section -->
+            <div id="dashboard-section" class="content-section active">
+                <h2 class="mb-4">Dashboard</h2>
+                <div class="row g-4">
+                    <div class="col-md-6 col-lg-3">
+                        <div class="card stat-card">
+                            <div class="card-body">
+                                <div class="stat-icon bg-primary"><i class="bi bi-currency-rupee"></i></div>
+                                <div>
+                                    <h5 class="card-title text-muted">Total Sales</h5>
+                                    <p class="card-text fs-4 fw-bold" id="total-sales">₹0</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-lg-3">
+                        <div class="card stat-card">
+                            <div class="card-body">
+                                <div class="stat-icon bg-success"><i class="bi bi-cart-check"></i></div>
+                                <div>
+                                    <h5 class="card-title text-muted">New Orders</h5>
+                                    <p class="card-text fs-4 fw-bold" id="new-orders">0</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-lg-3">
+                         <div class="card stat-card">
+                            <div class="card-body">
+                                <div class="stat-icon bg-info"><i class="bi bi-people"></i></div>
+                                <div>
+                                    <h5 class="card-title text-muted">Total Customers</h5>
+                                    <p class="card-text fs-4 fw-bold" id="total-customers">0</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-lg-3">
+                         <div class="card stat-card">
+                            <div class="card-body">
+                                <div class="stat-icon bg-warning"><i class="bi bi-box-seam"></i></div>
+                                <div>
+                                    <h5 class="card-title text-muted">Total Products</h5>
+                                    <p class="card-text fs-4 fw-bold" id="total-products">0</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                 <div class="card mt-4 shadow-sm">
+                    <div class="card-header bg-white fw-bold">
+                        Recent Orders
+                    </div>
+                     <div class="card-body">
+                         <div class="table-responsive">
+                            <table class="table table-hover align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>Order ID</th>
+                                        <th>Customer</th>
+                                        <th>Total</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="recent-orders-table">
+                                    <!-- Recent orders will be injected here -->
+                                </tbody>
+                            </table>
+                         </div>
+                     </div>
+                 </div>
+            </div>
+
+            <!-- Products Section -->
+            <div id="products-section" class="content-section">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2>Manage Products</h2>
+                    <button class="btn btn-primary" onclick="openProductModal()">
+                        <i class="bi bi-plus-circle"></i> Add New Product
+                    </button>
+                </div>
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>Image</th>
+                                        <th>Name</th>
+                                        <th>Price</th>
+                                        <th>Description</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="products-table-body">
+                                    <!-- Product rows will be injected by JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Orders Section -->
+            <div id="orders-section" class="content-section">
+                <h2 class="mb-4">All Orders</h2>
+                 <div class="card shadow-sm">
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>Order ID</th>
+                                        <th>Customer</th>
+                                        <th>Date</th>
+                                        <th>Total</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="orders-table-body">
+                                    <!-- Order rows will be injected by JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Customers Section -->
+            <div id="customers-section" class="content-section">
+                <h2 class="mb-4">Customers</h2>
+                 <div class="card shadow-sm">
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>Customer ID</th>
+                                        <th>Name</th>
+                                        <th>Email</th>
+                                        <th>Join Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="customers-table-body">
+                                    <!-- Customer rows will be injected by JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analytics Section -->
+            <div id="analytics-section" class="content-section">
+                <h2 class="mb-4">Analytics & Reports</h2>
+                <div class="row g-4">
+                    <div class="col-lg-8">
+                        <div class="card shadow-sm h-100">
+                            <div class="card-header bg-white fw-bold">
+                                Sales Over Time
+                            </div>
+                            <div class="card-body" style="min-height: 300px;">
+                                <canvas id="salesChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4">
+                        <div class="card shadow-sm">
+                             <div class="card-header bg-white fw-bold">
+                                Top Selling Products
+                            </div>
+                            <div class="card-body">
+                                <ul class="list-group list-group-flush" id="top-products-list">
+                                    <!-- Top products will be injected by JS -->
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings Section -->
+            <div id="settings-section" class="content-section">
+                <h2 class="mb-4">Store Settings</h2>
+                <div class="card shadow-sm">
+                    <div class="card-body p-4">
+                        <form onsubmit="event.preventDefault(); alert('Settings saved!');">
+                            <h5 class="mb-3">General Settings</h5>
+                            <div class="row g-3">
+                                <div class="col-md-6 mb-3">
+                                    <label for="storeName" class="form-label">Store Name</label>
+                                    <input type="text" class="form-control" id="storeName" value="Stylo">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="storeEmail" class="form-label">Contact Email</label>
+                                    <input type="email" class="form-control" id="storeEmail" value="contact@stylo.com">
+                                </div>
+                            </div>
+                            <hr class="my-4">
+                            <h5 class="mb-3">Currency & Region</h5>
+                             <div class="row g-3">
+                                <div class="col-md-6 mb-3">
+                                    <label for="storeCurrency" class="form-label">Currency</label>
+                                    <select class="form-select" id="storeCurrency">
+                                        <option value="INR" selected>Indian Rupee (₹)</option>
+                                        <option value="USD">US Dollar ($)</option>
+                                        <option value="EUR">Euro (€)</option>
+                                    </select>
+                                </div>
+                             </div>
+                             <hr class="my-4">
+                             <h5 class="mb-3">Payment Gateways</h5>
+                             <div class="form-check form-switch mb-2 fs-5">
+                               <input class="form-check-input" type="checkbox" role="switch" id="stripeSwitch" checked>
+                               <label class="form-check-label" for="stripeSwitch">Enable Stripe</label>
+                             </div>
+                             <div class="form-check form-switch mb-2 fs-5">
+                               <input class="form-check-input" type="checkbox" role="switch" id="paypalSwitch">
+                               <label class="form-check-label" for="paypalSwitch">Enable PayPal</label>
+                             </div>
+                             <div class="form-check form-switch mb-2 fs-5">
+                               <input class="form-check-input" type="checkbox" role="switch" id="codSwitch" checked>
+                               <label class="form-check-label" for="codSwitch">Enable Cash on Delivery (COD)</label>
+                             </div>
+                             <div class="mt-4 text-end">
+                                 <button type="submit" class="btn btn-primary btn-lg">Save Settings</button>
+                             </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Product Add/Edit Modal -->
+    <div class="modal fade" id="productModal" tabindex="-1" aria-labelledby="productModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="productModalLabel">Add New Product</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <form id="product-form" novalidate>
+                <input type="hidden" id="productId">
+                <div class="mb-3">
+                    <label for="productName" class="form-label">Product Name</label>
+                    <input type="text" class="form-control" id="productName" required>
+                    <div class="invalid-feedback">Please enter a product name.</div>
+                </div>
+                <div class="mb-3">
+                    <label for="productPrice" class="form-label">Price (₹)</label>
+                    <input type="number" class="form-control" id="productPrice" required min="0">
+                     <div class="invalid-feedback">Please enter a valid price.</div>
+                </div>
+                 <div class="mb-3">
+                    <label for="productImage" class="form-label">Image Filename</label>
+                    <input type="text" class="form-control" id="productImage" placeholder="e.g., i-1.jpeg" required>
+                    <div class="form-text">Enter the filename of the image located in the same folder as your E-Commerce.html.</div>
+                     <div class="invalid-feedback">Please enter an image filename.</div>
+                </div>
+                <div class="mb-3">
+                    <label for="productDescription" class="form-label">Description</label>
+                    <textarea class="form-control" id="productDescription" rows="3" required></textarea>
+                    <div class="invalid-feedback">Please enter a product description.</div>
+                </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-primary" onclick="saveProduct()">Save Changes</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // --- DATA (This would come from a server/database in a real app) ---
+        // This data is copied from your E-Commerce.html file for consistency.
+        let products = [
+            { id: 1, name: 'Urban Explorer Jacket', price: 3500, image: 'i-1.jpeg', description: 'A stylish and durable jacket, perfect for city life and outdoor adventures. Water-resistant and breathable material.' },
+            { id: 2, name: 'Minimalist Chrono Watch', price: 2000, image: 'i-2.jpg', description: 'A timeless timepiece with a modern twist. Features a stainless steel case, leather strap, and precise chronograph movement.' },
+            { id: 3, name: 'Premium Leather Sneakers', price: 2500, image: 'i-3.jpg', description: 'Crafted from genuine leather, these sneakers offer supreme comfort and a sleek, versatile look for any occasion.' },
+            { id: 4, name: 'Designer Aviator Sunglasses', price: 1200, image: 'i-4.jpeg', description: 'Protect your eyes with style. These aviator sunglasses feature polarized lenses and a lightweight metal frame.' },
+            { id: 5, name: 'Slim Fit Performance Jeans', price: 2200, image: 'i-5.jpeg', description: 'The perfect blend of style and comfort. These chinos are made with stretch fabric for easy movement throughout your day.' },
+            { id: 6, name: 'Italian Silk Tie', price: 800, image: 'i-6.jpg', description: 'Add a touch of elegance to your formal wear with this luxurious tie, handcrafted from the finest Italian silk.' },
+            { id: 7, name: 'Canvas & Leather Messenger Bag', price: 1800, image: 'i-7.jpg', description: 'A functional and fashionable bag for the modern professional. Features a padded laptop compartment and multiple pockets.' },
+            { id: 8, name: 'Cashmere Wool Scarf', price: 500, image: 'i-8.jpeg', description: 'Stay warm and stylish with this incredibly soft scarf, woven from a premium blend of cashmere and merino wool.' },
+            { id: 9, name: 'Men luxury Formal Shirt ', price: 2200, image: 'i-9.jpg', description: 'Men Bright White and Mulled Haze Blue Striped Royel Oxford Shirt.' },
+            { id: 10, name: 'Mens Lether Wallet', price: 700, image: 'i-10.jpg', description: 'Allen Solly Men Taxtured Leather Formal Wallet with 1 main compartment, 2 card holder, 1slip pocket.' },
+            { id: 11, name: 'Mens Luxury Lether Belt', price: 900, image: 'i-11.jpg', description: 'Halden luxury No-Hole Belt Theo Brown with Classic Buckle .' },
+            { id: 12, name: 'Mens Polo Tshirt', price: 1800, image: 'i-12.jpg', description: 'Mast & Harbour Mens Striped Polo Collar Relexed Fit Tshirt.' },
+        ];
+        
+        let orders = [
+            { id: 101, customer: 'Rahul Sharma', date: '2025-09-18', total: 5500, status: 'Shipped' },
+            { id: 102, customer: 'Priya Patel', date: '2025-09-18', total: 1200, status: 'Processing' },
+            { id: 103, customer: 'Ankit Gupta', date: '2025-09-17', total: 1800, status: 'Delivered' },
+            { id: 104, customer: 'Sneha Reddy', date: '2025-09-16', total: 3100, status: 'Delivered' },
+            { id: 105, customer: 'Vikram Singh', date: '2025-09-19', total: 700, status: 'Pending' },
+        ];
+
+        let customers = [
+            { id: 1, name: 'Rahul Sharma', email: 'rahul.s@example.com', joinDate: '2025-01-15' },
+            { id: 2, name: 'Priya Patel', email: 'priya.p@example.com', joinDate: '2025-02-20' },
+            { id: 3, name: 'Ankit Gupta', email: 'ankit.g@example.com', joinDate: '2025-03-10' },
+            { id: 4, name: 'Sneha Reddy', email: 'sneha.r@example.com', joinDate: '2025-04-05' },
+            { id: 5, name: 'Vikram Singh', email: 'vikram.s@example.com', joinDate: '2025-05-25' },
+        ];
+
+        let productModal; // To hold the Bootstrap Modal instance
+
+        // --- CORE UI FUNCTIONS ---
+
+        /**
+         * Shows a specific section and hides others. Also updates the active link in the sidebar.
+         * @param {string} sectionId The ID of the section to show (e.g., 'dashboard').
+         * @param {HTMLElement} navElement The clicked navigation link.
+         */
+        function showSection(sectionId, navElement) {
+            // Hide all content sections
+            document.querySelectorAll('.content-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            // Show the target section
+            document.getElementById(sectionId + '-section').classList.add('active');
+
+            // Update active state on nav links
+            document.querySelectorAll('#sidebar ul li').forEach(li => {
+                li.classList.remove('active');
+            });
+            navElement.parentElement.classList.add('active');
+        }
+
+        // --- RENDER FUNCTIONS (To populate the UI with data) ---
+        
+        function renderDashboard() {
+            // Calculate stats from the data arrays
+            const totalSales = orders.reduce((sum, order) => sum + order.total, 0);
+            const newOrders = orders.filter(o => o.status === 'Processing' || o.status === 'Pending').length;
+            const totalCustomers = customers.length;
+            const totalProducts = products.length;
+
+            // Update the stat cards in the HTML
+            document.getElementById('total-sales').textContent = `₹${totalSales.toLocaleString('en-IN')}`;
+            document.getElementById('new-orders').textContent = newOrders;
+            document.getElementById('total-customers').textContent = totalCustomers;
+            document.getElementById('total-products').textContent = totalProducts;
+            
+            // Render the recent orders table
+            const recentOrdersTable = document.getElementById('recent-orders-table');
+            recentOrdersTable.innerHTML = '';
+            orders.slice(0, 5).forEach(order => {
+                let statusBadge = getStatusBadge(order.status);
+                recentOrdersTable.innerHTML += `
+                    <tr>
+                        <td>#${order.id}</td>
+                        <td>${order.customer}</td>
+                        <td>₹${order.total.toLocaleString('en-IN')}</td>
+                        <td><span class="badge ${statusBadge}">${order.status}</span></td>
+                    </tr>
+                `;
+            });
+        }
+
+        function renderProducts() {
+            const tableBody = document.getElementById('products-table-body');
+            tableBody.innerHTML = ''; // Clear existing rows before re-rendering
+            products.forEach(product => {
+                const row = `
+                    <tr>
+                        <td><img src="${product.image}" alt="${product.name}" class="product-img-thumbnail" onerror="this.onerror=null;this.src='https://placehold.co/60x60/CCCCCC/000000?text=N/A';"></td>
+                        <td>${product.name}</td>
+                        <td>₹${product.price.toLocaleString('en-IN')}</td>
+                        <td title="${product.description}">${product.description.substring(0, 50)}...</td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary me-1" onclick="openProductModal(${product.id})"><i class="bi bi-pencil-square"></i> Edit</button>
+                            <button class="btn btn-sm btn-outline-danger" onclick="deleteProduct(${product.id})"><i class="bi bi-trash"></i> Delete</button>
+                        </td>
+                    </tr>
+                `;
+                tableBody.innerHTML += row;
+            });
+        }
+        
+        function renderOrders() {
+            const tableBody = document.getElementById('orders-table-body');
+            tableBody.innerHTML = '';
+            orders.forEach(order => {
+                let statusBadge = getStatusBadge(order.status);
+                tableBody.innerHTML += `
+                    <tr>
+                        <td>#${order.id}</td>
+                        <td>${order.customer}</td>
+                        <td>${order.date}</td>
+                        <td>₹${order.total.toLocaleString('en-IN')}</td>
+                        <td><span class="badge ${statusBadge}">${order.status}</span></td>
+                    </tr>
+                `;
+            });
+        }
+
+        function renderCustomers() {
+            const tableBody = document.getElementById('customers-table-body');
+            tableBody.innerHTML = '';
+            customers.forEach(customer => {
+                 tableBody.innerHTML += `
+                    <tr>
+                        <td>#${customer.id}</td>
+                        <td>${customer.name}</td>
+                        <td>${customer.email}</td>
+                        <td>${customer.joinDate}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        /**
+         * Helper function to get the correct Bootstrap badge class for an order status.
+         * @param {string} status The order status string.
+         * @returns {string} The Bootstrap badge class string.
+         */
+        function getStatusBadge(status) {
+             switch (status) {
+                case 'Delivered': return 'bg-success';
+                case 'Shipped': return 'bg-info';
+                case 'Processing': return 'bg-warning text-dark';
+                case 'Pending': return 'bg-danger';
+                default: return 'bg-secondary';
+            }
+        }
+
+        function renderAnalytics() {
+            // Mock data for top products
+            const topProducts = [...products] // Create a copy
+                .sort((a,b) => b.price - a.price) // Sort by price for demo
+                .slice(0, 5); 
+            
+            const topProductsList = document.getElementById('top-products-list');
+            topProductsList.innerHTML = '';
+            topProducts.forEach(p => {
+                topProductsList.innerHTML += `<li class="list-group-item d-flex justify-content-between align-items-center">${p.name} <span class="badge bg-primary rounded-pill">₹${p.price.toLocaleString('en-IN')}</span></li>`;
+            });
+            
+            // Chart.js implementation for Sales Chart
+            const ctx = document.getElementById('salesChart').getContext('2d');
+            // Destroy existing chart instance if it exists to prevent duplicates
+            if (window.mySalesChart instanceof Chart) {
+                window.mySalesChart.destroy();
+            }
+            window.mySalesChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'],
+                    datasets: [{
+                        label: 'Sales (₹)',
+                        data: [12000, 19000, 15000, 25000, 22000, 30000, 28000, 35000, 40000],
+                        borderColor: 'rgba(0, 199, 255, 1)',
+                        backgroundColor: 'rgba(0, 199, 255, 0.2)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Settings page is static for this demo.
+        function renderSettings() {
+            // In a real app, you would fetch and render saved settings from a server.
+        }
+        
+        // --- PRODUCT CRUD (Create, Read, Update, Delete) FUNCTIONS ---
+        
+        /**
+         * Opens the product modal. If a productId is provided, it populates the form for editing.
+         * Otherwise, it clears the form for adding a new product.
+         * @param {number|null} productId The ID of the product to edit, or null to add a new one.
+         */
+        function openProductModal(productId = null) {
+            const form = document.getElementById('product-form');
+            form.reset();
+            form.classList.remove('was-validated');
+            document.getElementById('productId').value = '';
+            const modalLabel = document.getElementById('productModalLabel');
+
+            if (productId) {
+                // Edit mode
+                const product = products.find(p => p.id === productId);
+                if(product) {
+                    modalLabel.textContent = 'Edit Product';
+                    document.getElementById('productId').value = product.id;
+                    document.getElementById('productName').value = product.name;
+                    document.getElementById('productPrice').value = product.price;
+                    document.getElementById('productImage').value = product.image;
+                    document.getElementById('productDescription').value = product.description;
+                }
+            } else {
+                // Add mode
+                modalLabel.textContent = 'Add New Product';
+            }
+
+            productModal.show();
+        }
+
+        /**
+         * Saves a product's details from the modal form. Handles both creating and updating.
+         */
+        function saveProduct() {
+            const form = document.getElementById('product-form');
+            if (!form.checkValidity()) {
+                form.classList.add('was-validated');
+                return;
+            }
+
+            const id = document.getElementById('productId').value;
+            const name = document.getElementById('productName').value;
+            const price = parseFloat(document.getElementById('productPrice').value);
+            const image = document.getElementById('productImage').value;
+            const description = document.getElementById('productDescription').value;
+
+            if (id) {
+                // Update existing product
+                const productIndex = products.findIndex(p => p.id == id);
+                if (productIndex > -1) {
+                    products[productIndex] = { id: parseInt(id), name, price, image, description };
+                }
+            } else {
+                // Add new product
+                const newId = products.length > 0 ? Math.max(...products.map(p => p.id)) + 1 : 1;
+                products.push({ id: newId, name, price, image, description });
+            }
+
+            productModal.hide();
+            renderProducts(); // Refresh the products table
+            renderDashboard(); // Update total products count on the dashboard
+        }
+
+        /**
+         * Deletes a product after user confirmation.
+         * @param {number} productId The ID of the product to delete.
+         */
+        function deleteProduct(productId) {
+            if (confirm('Are you sure you want to delete this product?')) {
+                products = products.filter(p => p.id !== productId);
+                renderProducts(); // Refresh the products table
+                renderDashboard(); // Update total products count on the dashboard
+            }
+        }
+        
+        // --- INITIALIZATION ---
+        // This runs when the page has finished loading.
+        document.addEventListener('DOMContentLoaded', function () {
+            // Sidebar toggle logic
+            document.getElementById('sidebarCollapse').addEventListener('click', function () {
+                document.getElementById('sidebar').classList.toggle('active');
+            });
+            
+            // Initialize the Bootstrap modal instance so we can control it with JS
+            productModal = new bootstrap.Modal(document.getElementById('productModal'));
+            
+            // Initial render of all data on page load
+            renderDashboard();
+            renderProducts();
+            renderOrders();
+            renderCustomers();
+            renderAnalytics();
+            renderSettings();
+        });
+
+    </script>
+</body>
+</html>
+
